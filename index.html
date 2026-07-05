@@ -212,11 +212,14 @@
   }
   .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
 
-  /* Mobile sidebar slide-in */
+  /* Sidebar — hidden by default on mobile, always visible on md+ */
   #paramSidebar {
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  #paramSidebar.mobile-hidden { transform: translateX(-100%); }
+  @media (max-width: 767px) {
+    #paramSidebar { transform: translateX(-100%); }
+    #paramSidebar.sidebar-open { transform: translateX(0); }
+  }
 
   /* Floating input focus glow */
   #inputWrapper:focus-within {
@@ -239,7 +242,7 @@
 
 <!-- ═══════════ SIDEBAR: Parameter Panel ═══════════ -->
 <aside id="paramSidebar"
-  class="fixed md:relative z-40 flex flex-col h-full w-72 glass-panel border-r border-white/10 py-lg px-md gap-sm shadow-2xl shadow-black/50 mobile-hidden md:translate-x-0">
+  class="fixed md:relative z-40 flex flex-col h-full w-72 glass-panel border-r border-white/10 py-lg px-md gap-sm shadow-2xl shadow-black/50">
 
   <!-- Sidebar Header -->
   <div class="flex items-center justify-between mb-sm shrink-0">
@@ -496,11 +499,11 @@ let isGenerating = false;
 
 // ─── SIDEBAR TOGGLE ─────────────────────────────────────────────────────────
 function openSidebar() {
-  paramSidebar.classList.remove('mobile-hidden');
+  paramSidebar.classList.add('sidebar-open');
   sidebarOverlay.classList.add('active');
 }
 function closeSidebar() {
-  paramSidebar.classList.add('mobile-hidden');
+  paramSidebar.classList.remove('sidebar-open');
   sidebarOverlay.classList.remove('active');
 }
 openSidebarBtn.addEventListener('click', openSidebar);
