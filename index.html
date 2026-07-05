@@ -1,1193 +1,744 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SlimGPT — AI Chat Experience</title>
-    <meta name="description" content="A gorgeous, glassmorphic chat interface powered by the custom SlimGPT language model.">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        /* Global CSS Custom Properties */
-        :root {
-            --bg-base: hsl(224, 71%, 4%);
-            --bg-surface: rgba(255, 255, 255, 0.03);
-            --bg-surface-hover: rgba(255, 255, 255, 0.06);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --border-color-focus: rgba(255, 255, 255, 0.2);
-            
-            --text-primary: hsl(0, 0%, 96%);
-            --text-secondary: hsl(220, 20%, 65%);
-            --text-muted: hsl(220, 10%, 45%);
-            
-            --primary-gradient: linear-gradient(135deg, hsl(263, 80%, 55%), hsl(240, 70%, 50%));
-            --glow-gradient: linear-gradient(135deg, hsla(263, 80%, 55%, 0.3), hsla(180, 80%, 55%, 0.3));
-            --accent-cyan: hsl(180, 80%, 50%);
-            
-            --font-display: 'Outfit', sans-serif;
-            --font-body: 'Plus Jakarta Sans', sans-serif;
-            
-            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --radius-sm: 8px;
-        }
-
-        /* Reset and Base Styles */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--bg-base);
-            color: var(--text-primary);
-            font-family: var(--font-body);
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-
-        /* Ambient Animated Background */
-        body::before, body::after {
-            content: '';
-            position: absolute;
-            width: 40vw;
-            height: 40vw;
-            border-radius: 50%;
-            filter: blur(120px);
-            z-index: -1;
-            opacity: 0.15;
-            pointer-events: none;
-        }
-
-        body::before {
-            background: hsl(263, 80%, 55%);
-            top: 10%;
-            left: 10%;
-            animation: float 20s ease-in-out infinite alternate;
-        }
-
-        body::after {
-            background: var(--accent-cyan);
-            bottom: 10%;
-            right: 10%;
-            animation: float 25s ease-in-out infinite alternate-reverse;
-        }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(50px, 50px) scale(1.1); }
-        }
-
-        /* App Container Layout */
-        .app-container {
-            width: 100%;
-            max-width: 1100px;
-            height: 92vh;
-            background: var(--bg-surface);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            display: flex;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-            position: relative;
-        }
-
-        /* Sidebar Settings drawer */
-        .sidebar {
-            width: 320px;
-            border-right: 1px solid var(--border-color);
-            background: rgba(10, 12, 22, 0.4);
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition-smooth);
-            z-index: 10;
-        }
-
-        .sidebar-header {
-            padding: 24px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand-logo {
-            width: 36px;
-            height: 36px;
-            background: var(--primary-gradient);
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
-        }
-
-        .brand-logo i {
-            color: #fff;
-            font-size: 1.1rem;
-        }
-
-        .brand-name {
-            font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 1.25rem;
-            letter-spacing: 0.5px;
-            background: linear-gradient(135deg, #fff 60%, var(--accent-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .close-sidebar-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.25rem;
-            cursor: pointer;
-            display: none; /* Mobile only */
-        }
-
-        .sidebar-content {
-            padding: 24px;
-            flex-grow: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 28px;
-        }
-
-        .setting-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .setting-label-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .setting-label {
-            font-family: var(--font-display);
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .setting-val {
-            font-size: 0.85rem;
-            font-family: monospace;
-            background: var(--bg-surface-hover);
-            padding: 2px 8px;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            color: var(--accent-cyan);
-        }
-
-        .setting-desc {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            line-height: 1.3;
-        }
-
-        /* Premium Sliders */
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            outline: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--accent-cyan);
-            cursor: pointer;
-            transition: transform 0.1s ease;
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
-        }
-
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-
-        /* Sidebar Footer buttons */
-        .sidebar-footer {
-            padding: 20px 24px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .btn {
-            padding: 12px 20px;
-            border-radius: var(--radius-md);
-            font-family: var(--font-display);
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: var(--transition-smooth);
-            border: none;
-        }
-
-        .btn-secondary {
-            background: var(--bg-surface);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background: var(--bg-surface-hover);
-            border-color: var(--border-color-focus);
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary:active {
-            transform: translateY(0);
-        }
-
-        /* Main Chat Window Area */
-        .chat-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background: transparent;
-            position: relative;
-        }
-
-        /* Chat Window Header */
-        .chat-header {
-            height: 80px;
-            padding: 0 24px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(10, 12, 22, 0.2);
-        }
-
-        .chat-title-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .toggle-sidebar-btn {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            width: 42px;
-            height: 42px;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: var(--transition-smooth);
-        }
-
-        .toggle-sidebar-btn:hover {
-            background: var(--bg-surface-hover);
-            border-color: var(--border-color-focus);
-        }
-
-        .status-pill {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            transition: var(--transition-smooth);
-        }
-
-        .status-pill.checking {
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-            border-color: rgba(245, 158, 11, 0.2);
-        }
-
-        .status-pill.offline {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.2);
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: pulse-dot 1.5s infinite alternate;
-        }
-
-        @keyframes pulse-dot {
-            0% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-
-        /* Wake up banner */
-        .wakeup-banner {
-            background: rgba(245, 158, 11, 0.15);
-            border-bottom: 1px solid rgba(245, 158, 11, 0.25);
-            padding: 10px 24px;
-            font-size: 0.85rem;
-            color: #f59e0b;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .wakeup-banner i {
-            font-size: 1.1rem;
-            animation: spin 2s linear infinite;
-        }
-
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes slideDown {
-            from { transform: translateY(-100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        /* Message Log Container */
-        .messages-container {
-            flex-grow: 1;
-            padding: 24px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            scroll-behavior: smooth;
-        }
-
-        /* Custom Scrollbar */
-        .messages-container::-webkit-scrollbar,
-        .sidebar-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .messages-container::-webkit-scrollbar-track,
-        .sidebar-content::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .messages-container::-webkit-scrollbar-thumb,
-        .sidebar-content::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        .messages-container::-webkit-scrollbar-thumb:hover,
-        .sidebar-content::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Welcome Message Screen */
-        .welcome-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-            text-align: center;
-            gap: 24px;
-            opacity: 1;
-            transition: var(--transition-smooth);
-        }
-
-        .welcome-icon {
-            font-size: 3.5rem;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: heartbeat 3s infinite alternate;
-        }
-
-        @keyframes heartbeat {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.08); }
-        }
-
-        .welcome-title {
-            font-family: var(--font-display);
-            font-size: 2.2rem;
-            font-weight: 700;
-        }
-
-        .welcome-desc {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        /* Suggestions panel */
-        .suggestions-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .suggestion-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            padding: 16px;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            text-align: left;
-            transition: var(--transition-smooth);
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .suggestion-card:hover {
-            background: var(--bg-surface-hover);
-            border-color: var(--border-color-focus);
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .suggestion-title {
-            font-family: var(--font-display);
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-        }
-
-        .suggestion-prompt {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Message Bubbles Container */
-        .message {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            max-width: 80%;
-            animation: bubble-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes bubble-in {
-            from { transform: translateY(15px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .message.user {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-        }
-
-        .message.assistant {
-            align-self: flex-start;
-        }
-
-        /* Avatar styling */
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .message.user .avatar {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .message.assistant .avatar {
-            background: var(--primary-gradient);
-            color: white;
-        }
-
-        /* Message Bubble contents */
-        .bubble {
-            padding: 14px 18px;
-            border-radius: var(--radius-lg);
-            font-size: 0.95rem;
-            line-height: 1.5;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            position: relative;
-        }
-
-        .message.user .bubble {
-            background: var(--primary-gradient);
-            color: white;
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.25);
-        }
-
-        .message.assistant .bubble {
-            background: var(--bg-surface);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-bottom-left-radius: 4px;
-        }
-
-        /* Bouncing Dots Loading Indicator */
-        .loading-bubble {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 14px 22px;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            border-bottom-left-radius: 4px;
-            align-self: flex-start;
-            margin-left: 48px; /* Offset avatar size + gap */
-            animation: pulse-glow 1.5s infinite alternate;
-        }
-
-        .loading-bubble span {
-            width: 7px;
-            height: 7px;
-            background-color: var(--text-secondary);
-            border-radius: 50%;
-            display: inline-block;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .loading-bubble span:nth-child(1) { animation-delay: -0.32s; }
-        .loading-bubble span:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1.0); }
-        }
-
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.02); }
-            100% { box-shadow: 0 0 15px rgba(124, 58, 237, 0.08); }
-        }
-
-        /* CPU Performance warning tooltip below bubble */
-        .loading-note {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-left: 48px;
-            margin-top: -12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            animation: fadeIn 0.4s ease forwards;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Input Container Area */
-        .input-area {
-            padding: 20px 24px;
-            background: rgba(10, 12, 22, 0.2);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .input-row {
-            display: flex;
-            gap: 12px;
-            position: relative;
-        }
-
-        .chat-input {
-            flex-grow: 1;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 14px 20px;
-            color: var(--text-primary);
-            font-family: var(--font-body);
-            font-size: 0.95rem;
-            outline: none;
-            transition: var(--transition-smooth);
-            resize: none;
-            height: 52px;
-            line-height: 1.4;
-            max-height: 150px;
-        }
-
-        .chat-input:focus {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: var(--border-color-focus);
-            box-shadow: 0 0 15px rgba(124, 58, 237, 0.1);
-        }
-
-        .send-btn {
-            width: 52px;
-            height: 52px;
-            border-radius: var(--radius-md);
-            background: var(--primary-gradient);
-            border: none;
-            color: white;
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: var(--transition-smooth);
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
-        }
-
-        .send-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
-        }
-
-        .send-btn:active {
-            transform: translateY(0);
-        }
-
-        .send-btn:disabled {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
-        .input-info-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            padding: 0 4px;
-        }
-
-        .info-link {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: var(--transition-smooth);
-        }
-
-        .info-link:hover {
-            color: var(--accent-cyan);
-        }
-
-        /* Responsive Mobile Layout Override */
-        @media (max-width: 768px) {
-            .app-container {
-                height: 100vh;
-                border-radius: 0;
-                border: none;
-            }
-
-            .sidebar {
-                position: absolute;
-                left: -100%;
-                top: 0;
-                bottom: 0;
-                background: hsl(224, 71%, 4%);
-                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
-            }
-
-            .sidebar.active {
-                left: 0;
-            }
-
-            .close-sidebar-btn {
-                display: block;
-            }
-
-            .welcome-title {
-                font-size: 1.75rem;
-            }
-
-            .suggestions-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>SlimGPT | Hyper-Modern Intelligence</title>
+<meta name="description" content="A hyper-modern glassmorphic chat interface powered by SlimGPT — a custom GPT-style language model hosted on Hugging Face Spaces.">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:wght@100..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-variant": "#37333d",
+          "primary": "#d0bcff",
+          "on-surface-variant": "#cbc3d7",
+          "error-container": "#93000a",
+          "tertiary-fixed": "#6ffbbe",
+          "inverse-on-surface": "#322f39",
+          "primary-fixed-dim": "#d0bcff",
+          "outline-variant": "#494454",
+          "on-background": "#e7e0ed",
+          "secondary-container": "#0566d9",
+          "on-tertiary": "#003824",
+          "tertiary": "#4edea3",
+          "secondary-fixed-dim": "#adc6ff",
+          "on-error": "#690005",
+          "inverse-surface": "#e7e0ed",
+          "inverse-primary": "#6d3bd7",
+          "primary-fixed": "#e9ddff",
+          "surface": "#15121b",
+          "on-tertiary-fixed": "#002113",
+          "surface-container-lowest": "#0f0d15",
+          "primary-container": "#a078ff",
+          "on-primary-container": "#340080",
+          "on-secondary-fixed": "#001a42",
+          "error": "#ffb4ab",
+          "surface-tint": "#d0bcff",
+          "on-primary-fixed-variant": "#5516be",
+          "tertiary-container": "#00a572",
+          "tertiary-fixed-dim": "#4edea3",
+          "outline": "#958ea0",
+          "background": "#0B0F19",
+          "on-primary": "#3c0091",
+          "surface-bright": "#3b3742",
+          "on-secondary": "#002e6a",
+          "surface-container-low": "#1d1a23",
+          "on-secondary-fixed-variant": "#004395",
+          "on-tertiary-fixed-variant": "#005236",
+          "surface-dim": "#15121b",
+          "on-error-container": "#ffdad6",
+          "surface-container-highest": "#37333d",
+          "on-primary-fixed": "#23005c",
+          "secondary-fixed": "#d8e2ff",
+          "on-secondary-container": "#e6ecff",
+          "on-tertiary-container": "#00311f",
+          "secondary": "#adc6ff",
+          "on-surface": "#e7e0ed",
+          "surface-container-high": "#2c2832",
+          "surface-container": "#211e27"
+        },
+        borderRadius: {
+          "DEFAULT": "0.5rem",
+          "lg": "1rem",
+          "xl": "1.5rem",
+          "full": "9999px"
+        },
+        spacing: {
+          "base": "4px",
+          "lg": "32px",
+          "gutter": "16px",
+          "container-margin": "24px",
+          "md": "20px",
+          "sm": "12px",
+          "xl": "48px",
+          "xs": "8px"
+        },
+        fontFamily: {
+          "display": ["Geist"],
+          "body-lg": ["Geist"],
+          "body-md": ["Geist"],
+          "headline-md": ["Geist"],
+          "headline-lg": ["Geist"],
+          "label-caps": ["Geist"],
+          "label-code": ["JetBrains Mono"]
+        },
+        fontSize: {
+          "headline-lg": ["32px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "600" }],
+          "body-lg": ["16px", { lineHeight: "1.6", fontWeight: "400" }],
+          "label-caps": ["11px", { lineHeight: "1", letterSpacing: "0.1em", fontWeight: "700" }],
+          "headline-md": ["20px", { lineHeight: "1.4", fontWeight: "600" }],
+          "body-md": ["14px", { lineHeight: "1.5", fontWeight: "400" }],
+          "label-code": ["13px", { lineHeight: "1.4", letterSpacing: "0.02em", fontWeight: "500" }]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { background-color: #0B0F19; overflow: hidden; font-family: 'Geist', sans-serif; }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .glass-panel-high {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 32px 64px rgba(0,0,0,0.4);
+  }
+
+  .ambient-orb {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(110px);
+    opacity: 0.15;
+    z-index: 0;
+    animation: orb-pulse 14s infinite alternate ease-in-out;
+    pointer-events: none;
+  }
+  .orb-violet { background: #6d3bd7; top: -15%; left: -10%; animation-delay: 0s; }
+  .orb-blue   { background: #0566d9; bottom: -15%; right: -10%; animation-delay: -5s; }
+  .orb-green  { background: #10b981; top: 40%; left: 45%; animation-delay: -10s; }
+
+  @keyframes orb-pulse {
+    0%   { transform: scale(1) translate(0, 0); opacity: 0.1; }
+    100% { transform: scale(1.25) translate(40px, 30px); opacity: 0.22; }
+  }
+
+  /* Custom range sliders */
+  input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: rgba(208, 188, 255, 0.12);
+    border-radius: 2px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 14px; width: 14px;
+    border-radius: 50%;
+    background: #d0bcff;
+    cursor: pointer;
+    margin-top: -5px;
+    box-shadow: 0 0 12px rgba(208, 188, 255, 0.8);
+    transition: transform 0.15s ease;
+  }
+  input[type=range]:active::-webkit-slider-thumb { transform: scale(1.35); }
+
+  /* Status animations */
+  .status-online  { animation: glow-green 2s infinite; }
+  .status-offline { animation: glow-amber 1.4s infinite; }
+
+  @keyframes glow-green {
+    0%   { box-shadow: 0 0 0 0 rgba(78, 222, 163, 0.7); }
+    70%  { box-shadow: 0 0 0 6px rgba(78, 222, 163, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(78, 222, 163, 0); }
+  }
+  @keyframes glow-amber {
+    0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+    70%  { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+  }
+
+  /* Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  /* Chat bubble animations */
+  .bubble-in {
+    animation: bubble-appear 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes bubble-appear {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Bouncing dot loader */
+  .dot-bounce span {
+    width: 7px; height: 7px;
+    background: #958ea0;
+    border-radius: 50%;
+    display: inline-block;
+    animation: bounce 1.3s ease-in-out infinite both;
+  }
+  .dot-bounce span:nth-child(1) { animation-delay: -0.3s; }
+  .dot-bounce span:nth-child(2) { animation-delay: -0.15s; }
+  .dot-bounce span:nth-child(3) { animation-delay: 0s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+    40%            { transform: scale(1); opacity: 1; }
+  }
+
+  /* Mobile sidebar overlay */
+  .sidebar-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 30; backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+
+  /* Mobile sidebar slide-in */
+  #paramSidebar {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #paramSidebar.mobile-hidden { transform: translateX(-100%); }
+
+  /* Floating input focus glow */
+  #inputWrapper:focus-within {
+    border-color: rgba(208, 188, 255, 0.4) !important;
+    box-shadow: 0 0 28px rgba(208, 188, 255, 0.08);
+  }
+</style>
 </head>
-<body>
+<body class="flex h-screen w-full text-on-background antialiased selection:bg-primary/30">
 
-    <div class="app-container">
-        
-        <!-- Sidebar Settings -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="brand">
-                    <div class="brand-logo">
-                        <i class="fa-solid fa-microchip"></i>
-                    </div>
-                    <span class="brand-name">SlimGPT API</span>
-                </div>
-                <button class="close-sidebar-btn" id="closeSidebarBtn" aria-label="Close sidebar">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            
-            <div class="sidebar-content">
-                <!-- Parameters section -->
-                <div class="setting-group">
-                    <div class="setting-label-row">
-                        <span class="setting-label">Temperature</span>
-                        <span class="setting-val" id="tempVal">0.7</span>
-                    </div>
-                    <input type="range" id="tempSlider" min="0.1" max="2.0" step="0.1" value="0.7" aria-label="Temperature">
-                    <span class="setting-desc">Controls randomness: Lower is more focused and deterministic, higher is more creative.</span>
-                </div>
+<!-- Ambient Background Orbs -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+  <div class="ambient-orb orb-violet"></div>
+  <div class="ambient-orb orb-blue"></div>
+  <div class="ambient-orb orb-green"></div>
+</div>
 
-                <div class="setting-group">
-                    <div class="setting-label-row">
-                        <span class="setting-label">Max New Tokens</span>
-                        <span class="setting-val" id="tokensVal">150</span>
-                    </div>
-                    <input type="range" id="tokensSlider" min="10" max="512" step="10" value="150" aria-label="Max New Tokens">
-                    <span class="setting-desc">The maximum length of the reply generated by the model.</span>
-                </div>
+<!-- Mobile Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-                <div class="setting-group">
-                    <div class="setting-label-row">
-                        <span class="setting-label">Repetition Penalty</span>
-                        <span class="setting-val" id="repVal">1.5</span>
-                    </div>
-                    <input type="range" id="repSlider" min="1.0" max="2.5" step="0.1" value="1.5" aria-label="Repetition Penalty">
-                    <span class="setting-desc">Discourages the model from repeating words. 1.0 is no penalty.</span>
-                </div>
+<!-- ═══════════ SIDEBAR: Parameter Panel ═══════════ -->
+<aside id="paramSidebar"
+  class="fixed md:relative z-40 flex flex-col h-full w-72 glass-panel border-r border-white/10 py-lg px-md gap-sm shadow-2xl shadow-black/50 mobile-hidden md:translate-x-0">
 
-                <div class="setting-group">
-                    <div class="setting-label-row">
-                        <span class="setting-label">Top P (Nucleus)</span>
-                        <span class="setting-val" id="toppVal">0.9</span>
-                    </div>
-                    <input type="range" id="toppSlider" min="0.1" max="1.0" step="0.05" value="0.9" aria-label="Top P">
-                    <span class="setting-desc">Tokens with cumulative probabilities exceeding this threshold are kept.</span>
-                </div>
+  <!-- Sidebar Header -->
+  <div class="flex items-center justify-between mb-sm shrink-0">
+    <div class="flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">tune</span>
+      <h2 class="font-headline-md text-primary tracking-tight" style="font-family:Geist,sans-serif">Parameters</h2>
+    </div>
+    <button id="closeSidebar" class="md:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant transition-colors">
+      <span class="material-symbols-outlined text-[20px]">close</span>
+    </button>
+  </div>
 
-                <div class="setting-group">
-                    <div class="setting-label-row">
-                        <span class="setting-label">Top K</span>
-                        <span class="setting-val" id="topkVal">50</span>
-                    </div>
-                    <input type="range" id="topkSlider" min="1" max="100" step="1" value="50" aria-label="Top K">
-                    <span class="setting-desc">Limits sampling pool to top K highest probability tokens.</span>
-                </div>
-            </div>
-            
-            <div class="sidebar-footer">
-                <button class="btn btn-secondary" id="clearChatBtn">
-                    <i class="fa-solid fa-trash-can"></i>
-                    Clear Conversation
-                </button>
-                <button class="btn btn-secondary" id="exportChatBtn">
-                    <i class="fa-solid fa-file-export"></i>
-                    Export JSON
-                </button>
-            </div>
-        </aside>
+  <!-- Sliders -->
+  <div class="flex flex-col gap-lg flex-1 overflow-y-auto custom-scrollbar pr-xs">
 
-        <!-- Main Chat Area -->
-        <main class="chat-area">
-            
-            <!-- Chat Area Header -->
-            <header class="chat-header">
-                <div class="chat-title-info">
-                    <button class="toggle-sidebar-btn" id="toggleSidebarBtn" title="Toggle Settings" aria-label="Toggle Settings">
-                        <i class="fa-solid fa-sliders"></i>
-                    </button>
-                    <div>
-                        <h2 style="font-family: var(--font-display); font-size: 1.1rem; font-weight: 600;">SlimGPT Playground</h2>
-                        <p style="font-size: 0.75rem; color: var(--text-secondary);">Interactive Chat Experience</p>
-                    </div>
-                </div>
-                
-                <div class="status-pill checking" id="statusPill">
-                    <div class="status-dot"></div>
-                    <span id="statusText">Checking API...</span>
-                </div>
-            </header>
-
-            <!-- Wake up notification banner -->
-            <div class="wakeup-banner" id="wakeupBanner" style="display: none;">
-                <i class="fa-solid fa-hourglass-half"></i>
-                <span>Model is waking up. Hugging Face Spaces can take up to 2 minutes to resume from sleep mode. Please hold...</span>
-            </div>
-
-            <!-- Messages Log -->
-            <div class="messages-container" id="messagesContainer">
-                
-                <!-- Default Screen when no messages exist -->
-                <div class="welcome-screen" id="welcomeScreen">
-                    <div class="welcome-icon">
-                        <i class="fa-solid fa-brain"></i>
-                    </div>
-                    <h3 class="welcome-title">Meet SlimGPT</h3>
-                    <p class="welcome-desc">
-                        A custom generative language model hosted serverless on HuggingFace Spaces. Adjust the generation parameters in the sidebar to customize the output.
-                    </p>
-                    
-                    <div class="suggestions-grid">
-                        <div class="suggestion-card" onclick="usePresetPrompt('Once upon a time in a digital landscape')">
-                            <span class="suggestion-title">Creative Writing</span>
-                            <span class="suggestion-prompt">"Once upon a time in a digital landscape..."</span>
-                        </div>
-                        <div class="suggestion-card" onclick="usePresetPrompt('Explain what a neural network is')">
-                            <span class="suggestion-title">Explanation</span>
-                            <span class="suggestion-prompt">"Explain what a neural network is..."</span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Chat Input Footer -->
-            <div class="input-area">
-                <div class="input-row">
-                    <textarea class="chat-input" id="chatInput" placeholder="Message SlimGPT..." rows="1" aria-label="Chat Input"></textarea>
-                    <button class="send-btn" id="sendBtn" title="Send message" aria-label="Send message">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
-                </div>
-                
-                <div class="input-info-row">
-                    <span>Model runs on CPU. Responses take ~15-30 seconds.</span>
-                    <a href="https://huggingface.co/spaces/Pro1943/SlimGPT-API" target="_blank" class="info-link">
-                        HF Space <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem;"></i>
-                    </a>
-                </div>
-            </div>
-
-        </main>
-        
+    <!-- Temperature -->
+    <div class="flex flex-col gap-xs">
+      <div class="flex justify-between items-center">
+        <label class="font-label-caps text-on-surface-variant flex items-center gap-xs" style="font-family:Geist,sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:700">
+          <span class="material-symbols-outlined text-[14px]">thermostat</span> TEMPERATURE
+        </label>
+        <span id="tempVal" class="font-label-code text-primary" style="font-family:'JetBrains Mono',monospace;font-size:13px">0.7</span>
+      </div>
+      <input id="tempSlider" type="range" min="0.1" max="2.0" step="0.1" value="0.7" aria-label="Temperature">
+      <p class="text-[11px] text-on-surface-variant opacity-70">Randomness of output. Higher = more creative.</p>
     </div>
 
-    <!-- Application Script logic -->
-    <script>
-        const API_BASE = "https://pro1943-slimgpt-api.hf.space";
-        
-        // Element references
-        const sidebar = document.getElementById("sidebar");
-        const toggleSidebarBtn = document.getElementById("toggleSidebarBtn");
-        const closeSidebarBtn = document.getElementById("closeSidebarBtn");
-        
-        const tempSlider = document.getElementById("tempSlider");
-        const tempVal = document.getElementById("tempVal");
-        const tokensSlider = document.getElementById("tokensSlider");
-        const tokensVal = document.getElementById("tokensVal");
-        const repSlider = document.getElementById("repSlider");
-        const repVal = document.getElementById("repVal");
-        const toppSlider = document.getElementById("toppSlider");
-        const toppVal = document.getElementById("toppVal");
-        const topkSlider = document.getElementById("topkSlider");
-        const topkVal = document.getElementById("topkVal");
-        
-        const clearChatBtn = document.getElementById("clearChatBtn");
-        const exportChatBtn = document.getElementById("exportChatBtn");
-        
-        const statusPill = document.getElementById("statusPill");
-        const statusText = document.getElementById("statusText");
-        const wakeupBanner = document.getElementById("wakeupBanner");
-        
-        const messagesContainer = document.getElementById("messagesContainer");
-        const welcomeScreen = document.getElementById("welcomeScreen");
-        const chatInput = document.getElementById("chatInput");
-        const sendBtn = document.getElementById("sendBtn");
+    <!-- Top-P -->
+    <div class="flex flex-col gap-xs">
+      <div class="flex justify-between items-center">
+        <label class="font-label-caps text-on-surface-variant flex items-center gap-xs" style="font-family:Geist,sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:700">
+          <span class="material-symbols-outlined text-[14px]">blur_on</span> TOP-P
+        </label>
+        <span id="toppVal" class="font-label-code text-primary" style="font-family:'JetBrains Mono',monospace;font-size:13px">0.9</span>
+      </div>
+      <input id="toppSlider" type="range" min="0.0" max="1.0" step="0.05" value="0.9" aria-label="Top P">
+      <p class="text-[11px] text-on-surface-variant opacity-70">Nucleus sampling threshold.</p>
+    </div>
 
-        let chatHistory = [];
-        let isGenerating = false;
-        let healthCheckInterval = null;
+    <!-- Top-K -->
+    <div class="flex flex-col gap-xs">
+      <div class="flex justify-between items-center">
+        <label class="font-label-caps text-on-surface-variant flex items-center gap-xs" style="font-family:Geist,sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:700">
+          <span class="material-symbols-outlined text-[14px]">grain</span> TOP-K
+        </label>
+        <span id="topkVal" class="font-label-code text-primary" style="font-family:'JetBrains Mono',monospace;font-size:13px">50</span>
+      </div>
+      <input id="topkSlider" type="range" min="1" max="100" step="1" value="50" aria-label="Top K">
+      <p class="text-[11px] text-on-surface-variant opacity-70">Top K token sampling pool size.</p>
+    </div>
 
-        // Sync slider visual values
-        function syncSlider(slider, displayEl) {
-            displayEl.textContent = slider.value;
-            slider.addEventListener("input", (e) => {
-                displayEl.textContent = e.target.value;
-            });
-        }
-        syncSlider(tempSlider, tempVal);
-        syncSlider(tokensSlider, tokensVal);
-        syncSlider(repSlider, repVal);
-        syncSlider(toppSlider, toppVal);
-        syncSlider(topkSlider, topkVal);
+    <!-- Max Tokens -->
+    <div class="flex flex-col gap-xs">
+      <div class="flex justify-between items-center">
+        <label class="font-label-caps text-on-surface-variant flex items-center gap-xs" style="font-family:Geist,sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:700">
+          <span class="material-symbols-outlined text-[14px]">view_headline</span> MAX TOKENS
+        </label>
+        <span id="tokensVal" class="font-label-code text-primary" style="font-family:'JetBrains Mono',monospace;font-size:13px">150</span>
+      </div>
+      <input id="tokensSlider" type="range" min="10" max="512" step="8" value="150" aria-label="Max Tokens">
+      <p class="text-[11px] text-on-surface-variant opacity-70">Max reply length in tokens.</p>
+    </div>
 
-        // Sidebar Navigation
-        toggleSidebarBtn.addEventListener("click", () => {
-            sidebar.classList.toggle("active");
-        });
-        closeSidebarBtn.addEventListener("click", () => {
-            sidebar.classList.remove("active");
-        });
+    <!-- Repetition Penalty -->
+    <div class="flex flex-col gap-xs">
+      <div class="flex justify-between items-center">
+        <label class="font-label-caps text-on-surface-variant flex items-center gap-xs" style="font-family:Geist,sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:700">
+          <span class="material-symbols-outlined text-[14px]">history</span> PENALTY
+        </label>
+        <span id="repVal" class="font-label-code text-primary" style="font-family:'JetBrains Mono',monospace;font-size:13px">1.5</span>
+      </div>
+      <input id="repSlider" type="range" min="1.0" max="2.5" step="0.1" value="1.5" aria-label="Repetition Penalty">
+      <p class="text-[11px] text-on-surface-variant opacity-70">Discourages word repetition.</p>
+    </div>
 
-        // Autogrow textarea input height
-        chatInput.addEventListener("input", function() {
-            this.style.height = '52px';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
+  </div>
 
-        // Enter key listeners
-        chatInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                submitMessage();
-            }
-        });
+  <!-- Sidebar Footer -->
+  <div class="mt-auto flex flex-col gap-sm pt-md border-t border-white/5 shrink-0">
+    <button id="clearChatBtn" class="w-full py-sm px-md rounded-lg glass-panel text-on-surface hover:bg-white/10 transition-all font-label-caps active:scale-[0.98] flex items-center justify-center gap-xs text-[11px] tracking-widest" style="font-family:Geist,sans-serif">
+      <span class="material-symbols-outlined text-[16px]">delete_sweep</span> CLEAR CHAT
+    </button>
+    <button id="exportChatBtn" class="w-full py-sm px-md rounded-lg glass-panel text-on-surface hover:bg-white/10 transition-all font-label-caps active:scale-[0.98] flex items-center justify-center gap-xs text-[11px] tracking-widest" style="font-family:Geist,sans-serif">
+      <span class="material-symbols-outlined text-[16px]">download</span> EXPORT JSON
+    </button>
+    <!-- Active model badge -->
+    <div class="flex items-center gap-sm px-xs pt-xs">
+      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary-container flex items-center justify-center shadow-lg shrink-0">
+        <span class="material-symbols-outlined text-on-primary-container text-[18px]" style="font-variation-settings:'FILL' 1">bolt</span>
+      </div>
+      <div class="flex flex-col">
+        <p class="font-label-caps text-primary leading-none flex items-center gap-1" style="font-family:Geist,sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:700">
+          v1.0 SlimGPT
+          <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">auto_awesome</span>
+        </p>
+        <p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-0.5" style="font-family:Geist,sans-serif">Active Model</p>
+      </div>
+    </div>
+  </div>
+</aside>
 
-        sendBtn.addEventListener("click", submitMessage);
+<!-- ═══════════ MAIN VIEWPORT ═══════════ -->
+<main class="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
 
-        // Check Health API of Space
-        async function checkAPIHealth(isRetry = false) {
-            try {
-                const response = await fetch(`${API_BASE}/health`, { method: 'GET' });
-                if (response.ok) {
-                    statusPill.className = "status-pill";
-                    statusText.textContent = "API Awake";
-                    wakeupBanner.style.display = "none";
-                    return true;
-                }
-            } catch (err) {
-                console.error("Health check failed:", err);
-            }
-            
-            // If offline/sleeping
-            statusPill.className = "status-pill offline";
-            statusText.textContent = "Sleeping / Offline";
-            
-            if (isRetry) {
-                wakeupBanner.style.display = "flex";
-            }
-            return false;
-        }
+  <!-- Top App Bar -->
+  <header class="flex justify-between items-center w-full px-gutter h-16 glass-panel border-b border-white/10 shrink-0">
+    <div class="flex items-center gap-sm">
+      <!-- Mobile hamburger -->
+      <button id="openSidebar" class="md:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant transition-colors mr-1">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/80 to-secondary-container flex items-center justify-center shadow-md">
+        <span class="material-symbols-outlined text-[16px] text-on-primary" style="font-variation-settings:'FILL' 1">memory</span>
+      </div>
+      <h1 class="font-display text-headline-md text-primary tracking-tighter" style="font-family:Geist,sans-serif;font-weight:700">SlimGPT</h1>
+      <span class="hidden sm:inline bg-white/10 text-on-surface-variant text-[10px] px-2 py-0.5 rounded-lg border border-white/5 font-label-code tracking-tight ml-1" style="font-family:'JetBrains Mono',monospace">~13M Parameters</span>
+    </div>
 
-        // Periodically poll API health to verify wake-up
-        async function startHealthChecks() {
-            const isAwake = await checkAPIHealth(false);
-            if (!isAwake) {
-                // Poll every 5s if sleeping to detect wake-up
-                healthCheckInterval = setInterval(async () => {
-                    const awake = await checkAPIHealth(true);
-                    if (awake) {
-                        clearInterval(healthCheckInterval);
-                    }
-                }, 5000);
-            }
-        }
-        startHealthChecks();
+    <!-- Live Status Pill -->
+    <div id="statusPill" class="flex items-center gap-xs px-sm py-1 rounded-full bg-tertiary/10 border border-tertiary/20 transition-all duration-500">
+      <span id="statusDot" class="w-2 h-2 rounded-full bg-tertiary status-online flex-shrink-0"></span>
+      <span id="statusLabel" class="text-[10px] font-label-caps text-tertiary" style="font-family:Geist,sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:700">CHECKING...</span>
+    </div>
+  </header>
 
-        // Preset prompts handler
-        window.usePresetPrompt = function(promptText) {
-            chatInput.value = promptText;
-            chatInput.dispatchEvent(new Event('input'));
-            submitMessage();
-        };
+  <!-- ── Chat / Empty State Content Area ── -->
+  <div id="chatContent" class="flex-1 overflow-y-auto px-gutter py-xl relative flex flex-col items-center custom-scrollbar">
 
-        // Appending bubbles to messagesContainer
-        function appendMessage(role, text) {
-            // Remove welcome screen if it is showing
-            if (welcomeScreen) {
-                welcomeScreen.style.display = "none";
-            }
+    <!-- Empty State (hidden once chat starts) -->
+    <div id="emptyState" class="max-w-[900px] w-full mt-auto mb-auto flex flex-col gap-xl">
+      <div class="text-center space-y-sm">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary-container/20 flex items-center justify-center mx-auto mb-md glass-panel">
+          <span class="material-symbols-outlined text-primary text-[32px]" style="font-variation-settings:'FILL' 1">neurology</span>
+        </div>
+        <h2 class="font-headline-lg text-on-background" style="font-family:Geist,sans-serif;font-size:32px;font-weight:600;letter-spacing:-0.02em">How can I help you today?</h2>
+        <p class="text-on-surface-variant font-body-lg max-w-md mx-auto" style="font-family:Geist,sans-serif">Select a preset to begin or start typing below to interact with SlimGPT.</p>
+      </div>
 
-            const messageDiv = document.createElement("div");
-            messageDiv.className = `message ${role}`;
-            
-            const avatarDiv = document.createElement("div");
-            avatarDiv.className = "avatar";
-            
-            if (role === "user") {
-                avatarDiv.innerHTML = '<i class="fa-regular fa-user"></i>';
-            } else {
-                avatarDiv.innerHTML = '<i class="fa-solid fa-brain" style="font-size: 0.8rem"></i>';
-            }
-            
-            const bubbleDiv = document.createElement("div");
-            bubbleDiv.className = "bubble";
-            bubbleDiv.textContent = text;
-            
-            messageDiv.appendChild(avatarDiv);
-            messageDiv.appendChild(bubbleDiv);
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
-            // Save history
-            chatHistory.push({ role, text });
-        }
+      <!-- Preset suggestion cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+        <button class="preset-card glass-panel p-md rounded-xl hover:bg-white/10 transition-all cursor-pointer group flex flex-col gap-sm active:scale-[0.97] text-left"
+          data-prompt="Neural networks are used in">
+          <div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+            <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1">terminal</span>
+          </div>
+          <div>
+            <h3 class="font-headline-md text-on-surface" style="font-family:Geist,sans-serif;font-size:14px;font-weight:600">Neural networks are used in</h3>
+            <p class="text-on-surface-variant text-[13px] mt-1" style="font-family:Geist,sans-serif">Explore the diverse applications of neural architectures in AI.</p>
+          </div>
+        </button>
 
-        // Submitting message through API call
-        async function submitMessage() {
-            const prompt = chatInput.value.trim();
-            if (!prompt || isGenerating) return;
+        <button class="preset-card glass-panel p-md rounded-xl hover:bg-white/10 transition-all cursor-pointer group flex flex-col gap-sm active:scale-[0.97] text-left"
+          data-prompt="The meaning of life is">
+          <div class="w-10 h-10 rounded-lg bg-tertiary/20 flex items-center justify-center group-hover:bg-tertiary/30 transition-colors">
+            <span class="material-symbols-outlined text-tertiary" style="font-variation-settings:'FILL' 1">psychology</span>
+          </div>
+          <div>
+            <h3 class="font-headline-md text-on-surface" style="font-family:Geist,sans-serif;font-size:14px;font-weight:600">The meaning of life is</h3>
+            <p class="text-on-surface-variant text-[13px] mt-1" style="font-family:Geist,sans-serif">Philosophical inquiries into the nature of existence and purpose.</p>
+          </div>
+        </button>
 
-            // Clear input
-            chatInput.value = "";
-            chatInput.style.height = '52px';
-            
-            // Add user message
-            appendMessage("user", prompt);
-            
-            // Disable buttons during generation
-            isGenerating = true;
-            sendBtn.disabled = true;
-            chatInput.disabled = true;
-            
-            // Create loading bubble
-            const loadingBubble = document.createElement("div");
-            loadingBubble.className = "loading-bubble";
-            loadingBubble.id = "loadingBubble";
-            loadingBubble.innerHTML = "<span></span><span></span><span></span>";
-            
-            const loadingNote = document.createElement("div");
-            loadingNote.className = "loading-note";
-            loadingNote.id = "loadingNote";
-            loadingNote.innerHTML = '<i class="fa-solid fa-bolt"></i> <span>CPU Inference in progress (approx 15-30s)...</span>';
+        <button class="preset-card glass-panel p-md rounded-xl hover:bg-white/10 transition-all cursor-pointer group flex flex-col gap-sm active:scale-[0.97] text-left"
+          data-prompt="Deep learning is a subset of machine learning that">
+          <div class="w-10 h-10 rounded-lg bg-secondary-container/30 flex items-center justify-center group-hover:bg-secondary-container/40 transition-colors">
+            <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1">auto_awesome</span>
+          </div>
+          <div>
+            <h3 class="font-headline-md text-on-surface" style="font-family:Geist,sans-serif;font-size:14px;font-weight:600">Deep learning is a subset of</h3>
+            <p class="text-on-surface-variant text-[13px] mt-1" style="font-family:Geist,sans-serif">Understanding the hierarchy between AI, ML & deep learning.</p>
+          </div>
+        </button>
+      </div>
+    </div>
 
-            messagesContainer.appendChild(loadingBubble);
-            messagesContainer.appendChild(loadingNote);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    <!-- Chat messages will be appended here -->
+    <div id="messageList" class="max-w-[900px] w-full flex flex-col gap-md hidden"></div>
 
-            // Fetch request parameters
-            const payload = {
-                prompt: prompt,
-                max_new_tokens: parseInt(tokensSlider.value),
-                temperature: parseFloat(tempSlider.value),
-                top_k: parseInt(topkSlider.value),
-                top_p: parseFloat(toppSlider.value),
-                repetition_penalty: parseFloat(repSlider.value)
-            };
+  </div>
 
-            // Wake up check reminder
-            let wakePromptShown = false;
-            const wakeReminderTimer = setTimeout(() => {
-                loadingNote.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> <span>Waking up HF Space. This might take 1-2 mins on first run...</span>';
-                wakePromptShown = true;
-            }, 8000);
+  <!-- ── Footer Input Bar ── -->
+  <footer class="w-full px-gutter py-md flex flex-col items-center gap-sm pb-lg md:pb-md shrink-0">
+    <div class="max-w-[900px] w-full relative group">
+      <div id="inputWrapper" class="glass-panel flex items-center gap-sm px-md py-sm rounded-full shadow-lg shadow-black/50 transition-all duration-300 border border-white/8">
+        <textarea id="chatInput"
+          rows="1"
+          class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder-on-surface-variant/50 font-body-md resize-none overflow-hidden py-1 outline-none"
+          style="font-family:Geist,sans-serif;font-size:14px;max-height:120px;line-height:1.5"
+          placeholder="Send a message to SlimGPT..."></textarea>
+        <button id="sendBtn"
+          class="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-tr from-primary to-secondary-container text-on-primary shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">arrow_upward</span>
+        </button>
+      </div>
+      <div class="absolute -bottom-5 left-0 w-full flex justify-center">
+        <span class="text-[10px] font-label-code text-on-surface-variant opacity-50" style="font-family:'JetBrains Mono',monospace">Made by Pro1943 · CPU Inference · 15–30s per response</span>
+      </div>
+    </div>
+  </footer>
 
-            try {
-                const response = await fetch(`${API_BASE}/generate`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
+  <!-- Mobile Bottom Nav -->
+  <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-14 bg-surface/80 backdrop-blur-2xl border-t border-white/10 shadow-lg shadow-black/50">
+    <button id="mobileHistoryBtn" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90 duration-200 p-2">
+      <span class="material-symbols-outlined text-[22px]">schedule</span>
+      <span class="font-label-caps text-[9px] mt-0.5" style="font-family:Geist,sans-serif;letter-spacing:0.1em">HISTORY</span>
+    </button>
+    <button id="mobileChatBtn" class="flex flex-col items-center justify-center text-primary active:scale-90 duration-200 p-2">
+      <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'FILL' 1">chat</span>
+      <span class="font-label-caps text-[9px] mt-0.5" style="font-family:Geist,sans-serif;letter-spacing:0.1em">CHAT</span>
+    </button>
+    <button id="mobileParamsBtn" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90 duration-200 p-2">
+      <span class="material-symbols-outlined text-[22px]">tune</span>
+      <span class="font-label-caps text-[9px] mt-0.5" style="font-family:Geist,sans-serif;letter-spacing:0.1em">PARAMS</span>
+    </button>
+  </nav>
 
-                // Clear wake reminder timer
-                clearTimeout(wakeReminderTimer);
+</main>
 
-                // Remove loading elements
-                const lb = document.getElementById("loadingBubble");
-                if (lb) lb.remove();
-                const ln = document.getElementById("loadingNote");
-                if (ln) ln.remove();
+<script>
+// ─── CONSTANTS ──────────────────────────────────────────────────────────────
+const API_BASE = "https://pro1943-slimgpt-api.hf.space";
 
-                if (!response.ok) {
-                    throw new Error(`Server returned status ${response.status}`);
-                }
+// ─── ELEMENT REFS ───────────────────────────────────────────────────────────
+const paramSidebar    = document.getElementById('paramSidebar');
+const sidebarOverlay  = document.getElementById('sidebarOverlay');
+const openSidebarBtn  = document.getElementById('openSidebar');
+const closeSidebarBtn = document.getElementById('closeSidebar');
 
-                const responseData = await response.json();
-                const modelOutput = responseData.response || "No response received.";
-                
-                // Add Assistant bubble
-                appendMessage("assistant", modelOutput);
-                
-                // Ensure API state turns to green/awake if successful
-                statusPill.className = "status-pill";
-                statusText.textContent = "API Awake";
-                wakeupBanner.style.display = "none";
-                if (healthCheckInterval) clearInterval(healthCheckInterval);
+const tempSlider   = document.getElementById('tempSlider');
+const toppSlider   = document.getElementById('toppSlider');
+const topkSlider   = document.getElementById('topkSlider');
+const tokensSlider = document.getElementById('tokensSlider');
+const repSlider    = document.getElementById('repSlider');
+const tempVal      = document.getElementById('tempVal');
+const toppVal      = document.getElementById('toppVal');
+const topkVal      = document.getElementById('topkVal');
+const tokensVal    = document.getElementById('tokensVal');
+const repVal       = document.getElementById('repVal');
 
-            } catch (err) {
-                console.error("API Call error:", err);
-                clearTimeout(wakeReminderTimer);
-                
-                const lb = document.getElementById("loadingBubble");
-                if (lb) lb.remove();
-                const ln = document.getElementById("loadingNote");
-                if (ln) ln.remove();
+const statusPill  = document.getElementById('statusPill');
+const statusDot   = document.getElementById('statusDot');
+const statusLabel = document.getElementById('statusLabel');
 
-                // Append error bubble
-                appendMessage("assistant", `System Error: Unable to fetch response from SlimGPT. Please verify your Space is online.\nDetails: ${err.message}`);
-                
-                // Set status offline
-                statusPill.className = "status-pill offline";
-                statusText.textContent = "Error / Offline";
-            } finally {
-                isGenerating = false;
-                sendBtn.disabled = false;
-                chatInput.disabled = false;
-                chatInput.focus();
-            }
-        }
+const emptyState  = document.getElementById('emptyState');
+const messageList = document.getElementById('messageList');
+const chatInput   = document.getElementById('chatInput');
+const sendBtn     = document.getElementById('sendBtn');
+const clearChatBtn  = document.getElementById('clearChatBtn');
+const exportChatBtn = document.getElementById('exportChatBtn');
 
-        // Clear Chat Function
-        clearChatBtn.addEventListener("click", () => {
-            messagesContainer.innerHTML = "";
-            chatHistory = [];
-            
-            // Re-render welcome screen
-            messagesContainer.appendChild(welcomeScreen);
-            welcomeScreen.style.display = "flex";
-        });
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let chatHistory  = [];
+let isGenerating = false;
 
-        // Export JSON Chat History Function
-        exportChatBtn.addEventListener("click", () => {
-            if (chatHistory.length === 0) {
-                alert("No chat history to export.");
-                return;
-            }
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(chatHistory, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "slimgpt-chat-history.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        });
-    </script>
+// ─── SIDEBAR TOGGLE ─────────────────────────────────────────────────────────
+function openSidebar() {
+  paramSidebar.classList.remove('mobile-hidden');
+  sidebarOverlay.classList.add('active');
+}
+function closeSidebar() {
+  paramSidebar.classList.add('mobile-hidden');
+  sidebarOverlay.classList.remove('active');
+}
+openSidebarBtn.addEventListener('click', openSidebar);
+closeSidebarBtn.addEventListener('click', closeSidebar);
+sidebarOverlay.addEventListener('click', closeSidebar);
+document.getElementById('mobileParamsBtn').addEventListener('click', openSidebar);
+
+// ─── SLIDER SYNC ────────────────────────────────────────────────────────────
+function syncSlider(slider, display) {
+  display.textContent = slider.value;
+  slider.addEventListener('input', e => display.textContent = e.target.value);
+}
+syncSlider(tempSlider, tempVal);
+syncSlider(toppSlider, toppVal);
+syncSlider(topkSlider, topkVal);
+syncSlider(tokensSlider, tokensVal);
+syncSlider(repSlider, repVal);
+
+// ─── PARALLAX ORB EFFECT ────────────────────────────────────────────────────
+document.addEventListener('mousemove', e => {
+  const orbs = document.querySelectorAll('.ambient-orb');
+  const x = e.clientX / window.innerWidth;
+  const y = e.clientY / window.innerHeight;
+  orbs.forEach((orb, i) => {
+    const f = (i + 1) * 22;
+    orb.style.transform = `translate(${x * f}px, ${y * f}px) scale(${1 + x * 0.08})`;
+  });
+});
+
+// ─── HEALTH MONITOR ─────────────────────────────────────────────────────────
+async function checkHealth() {
+  try {
+    const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === 'healthy') {
+        setStatus('online');
+        return;
+      }
+    }
+    setStatus('offline');
+  } catch {
+    setStatus('offline');
+  }
+}
+
+function setStatus(state) {
+  if (state === 'online') {
+    statusDot.className = 'w-2 h-2 rounded-full bg-tertiary status-online flex-shrink-0';
+    statusLabel.textContent = 'API: ONLINE (CPU)';
+    statusLabel.className = 'text-[10px] font-label-caps text-tertiary';
+    statusPill.className = 'flex items-center gap-xs px-sm py-1 rounded-full bg-tertiary/10 border border-tertiary/20 transition-all duration-500';
+  } else {
+    statusDot.className = 'w-2 h-2 rounded-full bg-yellow-400 status-offline flex-shrink-0';
+    statusLabel.textContent = 'API: WAKING UP';
+    statusLabel.className = 'text-[10px] font-label-caps text-yellow-400';
+    statusPill.className = 'flex items-center gap-xs px-sm py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20 transition-all duration-500';
+  }
+}
+
+// Poll every 10 seconds
+checkHealth();
+setInterval(checkHealth, 10000);
+
+// ─── TEXTAREA AUTO-GROW ──────────────────────────────────────────────────────
+chatInput.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// ─── ENTER KEY SEND ─────────────────────────────────────────────────────────
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+sendBtn.addEventListener('click', sendMessage);
+
+// ─── PRESET CARDS ───────────────────────────────────────────────────────────
+document.querySelectorAll('.preset-card').forEach(card => {
+  card.addEventListener('click', () => {
+    chatInput.value = card.dataset.prompt;
+    chatInput.dispatchEvent(new Event('input'));
+    chatInput.focus();
+    sendMessage();
+  });
+});
+
+// ─── CHAT UI HELPERS ────────────────────────────────────────────────────────
+function showChatView() {
+  emptyState.classList.add('hidden');
+  messageList.classList.remove('hidden');
+}
+
+function scrollToBottom() {
+  const container = document.getElementById('chatContent');
+  container.scrollTop = container.scrollHeight;
+}
+
+function appendMessage(role, text) {
+  showChatView();
+
+  const wrapper = document.createElement('div');
+  wrapper.className = `flex items-end gap-sm bubble-in ${role === 'user' ? 'flex-row-reverse self-end' : 'flex-row self-start'} max-w-[85%]`;
+
+  // Avatar
+  const avatar = document.createElement('div');
+  avatar.className = `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+    role === 'user'
+      ? 'bg-white/10 border border-white/10'
+      : 'bg-gradient-to-br from-primary/60 to-secondary-container'
+  }`;
+  avatar.innerHTML = role === 'user'
+    ? '<span class="material-symbols-outlined text-[16px] text-on-surface-variant">person</span>'
+    : '<span class="material-symbols-outlined text-[16px] text-on-primary" style="font-variation-settings:\'FILL\' 1">neurology</span>';
+
+  // Bubble
+  const bubble = document.createElement('div');
+  bubble.className = role === 'user'
+    ? 'px-md py-sm rounded-xl rounded-br-sm text-on-surface text-[14px] leading-relaxed whitespace-pre-wrap break-words'
+    : 'px-md py-sm rounded-xl rounded-bl-sm glass-panel border-l-2 border-primary/30 text-on-surface text-[14px] leading-relaxed whitespace-pre-wrap break-words';
+
+  if (role === 'user') {
+    bubble.style.cssText = 'background: rgba(109,59,215,0.35); border: 1px solid rgba(208,188,255,0.12); backdrop-filter:blur(8px);';
+  }
+  bubble.textContent = text;
+
+  wrapper.appendChild(role === 'user' ? bubble : avatar);
+  wrapper.appendChild(role === 'user' ? avatar : bubble);
+  messageList.appendChild(wrapper);
+  scrollToBottom();
+  chatHistory.push({ role, text });
+}
+
+function showLoader() {
+  showChatView();
+  const loaderWrapper = document.createElement('div');
+  loaderWrapper.id = 'loadingBubble';
+  loaderWrapper.className = 'flex items-end gap-sm bubble-in max-w-[85%] self-start';
+
+  // Avatar
+  const avatar = document.createElement('div');
+  avatar.className = 'w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-secondary-container flex items-center justify-center flex-shrink-0';
+  avatar.innerHTML = '<span class="material-symbols-outlined text-[16px] text-on-primary" style="font-variation-settings:\'FILL\' 1">neurology</span>';
+
+  const bubbleCol = document.createElement('div');
+  bubbleCol.className = 'flex flex-col gap-xs';
+
+  // Dots bubble
+  const dotsBubble = document.createElement('div');
+  dotsBubble.className = 'px-md py-sm rounded-xl rounded-bl-sm glass-panel border-l-2 border-primary/30 flex items-center gap-sm';
+  dotsBubble.innerHTML = '<span class="dot-bounce flex gap-xs"><span></span><span></span><span></span></span>';
+
+  // CPU warning badge
+  const badge = document.createElement('div');
+  badge.className = 'flex items-center gap-xs';
+  badge.innerHTML = `
+    <span class="material-symbols-outlined text-[12px] text-yellow-400">memory</span>
+    <span class="text-[10px] font-label-code text-on-surface-variant opacity-70" style="font-family:'JetBrains Mono',monospace">CPU Inference active — responses take 15–30s</span>
+  `;
+
+  bubbleCol.appendChild(dotsBubble);
+  bubbleCol.appendChild(badge);
+  loaderWrapper.appendChild(avatar);
+  loaderWrapper.appendChild(bubbleCol);
+  messageList.appendChild(loaderWrapper);
+  scrollToBottom();
+}
+
+function removeLoader() {
+  const el = document.getElementById('loadingBubble');
+  if (el) el.remove();
+}
+
+// ─── SEND MESSAGE ───────────────────────────────────────────────────────────
+async function sendMessage() {
+  const prompt = chatInput.value.trim();
+  if (!prompt || isGenerating) return;
+
+  // Clear input
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+
+  isGenerating = true;
+  sendBtn.disabled = true;
+
+  appendMessage('user', prompt);
+  showLoader();
+
+  const payload = {
+    prompt,
+    max_new_tokens:    parseInt(tokensSlider.value),
+    temperature:       parseFloat(tempSlider.value),
+    top_k:             parseInt(topkSlider.value),
+    top_p:             parseFloat(toppSlider.value),
+    repetition_penalty: parseFloat(repSlider.value)
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    removeLoader();
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    appendMessage('assistant', data.response || 'No response received.');
+    setStatus('online');
+  } catch (err) {
+    removeLoader();
+    appendMessage('assistant', `⚠ Could not reach the SlimGPT API.\n${err.message}\n\nThe Space may be waking from sleep — try again in ~60 seconds.`);
+    setStatus('offline');
+  } finally {
+    isGenerating = false;
+    sendBtn.disabled = false;
+    chatInput.focus();
+  }
+}
+
+// ─── CLEAR CHAT ─────────────────────────────────────────────────────────────
+clearChatBtn.addEventListener('click', () => {
+  chatHistory = [];
+  messageList.innerHTML = '';
+  messageList.classList.add('hidden');
+  emptyState.classList.remove('hidden');
+});
+
+// ─── EXPORT CHAT ────────────────────────────────────────────────────────────
+exportChatBtn.addEventListener('click', () => {
+  if (!chatHistory.length) { alert('No chat history to export.'); return; }
+  const blob = new Blob([JSON.stringify(chatHistory, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `slimgpt-chat-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+</script>
 </body>
 </html>
