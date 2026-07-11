@@ -6,6 +6,15 @@
 <title>SlimGPT | Hyper-Modern Intelligence</title>
 <meta name="description" content="A hyper-modern glassmorphic chat interface powered by SlimGPT — a custom GPT-style language model hosted on Hugging Face Spaces.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+<!-- Suppress Tailwind CDN Warning -->
+<script>
+  const originalWarn = console.warn;
+  console.warn = function(...args) {
+    if (typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+    originalWarn.apply(console, args);
+  };
+</script>
+
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:wght@100..800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
