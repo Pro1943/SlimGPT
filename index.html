@@ -335,12 +335,12 @@
       <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary-container flex items-center justify-center shadow-lg shrink-0">
         <span class="material-symbols-outlined text-on-primary-container text-[18px]" style="font-variation-settings:'FILL' 1">bolt</span>
       </div>
-      <div class="flex flex-col">
-        <p class="font-label-caps text-primary leading-none flex items-center gap-1" style="font-family:Geist,sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:700">
-          v1.0 SlimGPT
-          <span class="material-symbols-outlined text-[14px]" style="font-variation-settings:'FILL' 1">auto_awesome</span>
-        </p>
-        <p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-0.5" style="font-family:Geist,sans-serif">Active Model</p>
+      <div class="flex flex-col w-full">
+        <p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-0.5 mb-1" style="font-family:Geist,sans-serif">Active Model</p>
+        <select id="modelSelect" class="w-full bg-surface/50 border border-white/10 rounded-md text-primary font-label-caps p-1 outline-none focus:border-primary/50 cursor-pointer appearance-none" style="font-family:Geist,sans-serif;font-size:11px;letter-spacing:0.1em;font-weight:700">
+          <option value="v2">v2 SlimGPT (~34M)</option>
+          <option value="v1">v1 SlimGPT (~13M)</option>
+        </select>
       </div>
     </div>
   </div>
@@ -360,7 +360,7 @@
         <span class="material-symbols-outlined text-[16px] text-on-primary" style="font-variation-settings:'FILL' 1">memory</span>
       </div>
       <h1 class="font-display text-headline-md text-primary tracking-tighter" style="font-family:Geist,sans-serif;font-weight:700">SlimGPT</h1>
-      <span class="hidden sm:inline bg-white/10 text-on-surface-variant text-[10px] px-2 py-0.5 rounded-lg border border-white/5 font-label-code tracking-tight ml-1" style="font-family:'JetBrains Mono',monospace">~13M Parameters</span>
+      <span id="headerParamBadge" class="hidden sm:inline bg-white/10 text-on-surface-variant text-[10px] px-2 py-0.5 rounded-lg border border-white/5 font-label-code tracking-tight ml-1" style="font-family:'JetBrains Mono',monospace">~34M Parameters</span>
     </div>
 
     <!-- Live Status Pill -->
@@ -426,7 +426,7 @@
   </div>
 
   <!-- ── Footer Input Bar ── -->
-  <footer class="w-full px-gutter py-md flex flex-col items-center gap-sm pb-lg md:pb-md shrink-0">
+  <footer class="w-full px-gutter py-md flex flex-col items-center gap-sm pb-24 md:pb-md shrink-0">
     <div class="max-w-[900px] w-full relative group">
       <div id="inputWrapper" class="glass-panel flex items-center gap-sm px-md py-sm rounded-full shadow-lg shadow-black/50 transition-all duration-300 border border-white/8">
         <textarea id="chatInput"
@@ -447,10 +447,6 @@
 
   <!-- Mobile Bottom Nav -->
   <nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-14 bg-surface/80 backdrop-blur-2xl border-t border-white/10 shadow-lg shadow-black/50">
-    <button id="mobileHistoryBtn" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90 duration-200 p-2">
-      <span class="material-symbols-outlined text-[22px]">schedule</span>
-      <span class="font-label-caps text-[9px] mt-0.5" style="font-family:Geist,sans-serif;letter-spacing:0.1em">HISTORY</span>
-    </button>
     <button id="mobileChatBtn" class="flex flex-col items-center justify-center text-primary active:scale-90 duration-200 p-2">
       <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'FILL' 1">chat</span>
       <span class="font-label-caps text-[9px] mt-0.5" style="font-family:Geist,sans-serif;letter-spacing:0.1em">CHAT</span>
@@ -695,6 +691,7 @@ async function sendMessage() {
 
   const payload = {
     prompt,
+    model:             document.getElementById('modelSelect').value,
     max_new_tokens:    parseInt(tokensSlider.value),
     temperature:       parseFloat(tempSlider.value),
     top_k:             parseInt(topkSlider.value),
@@ -743,6 +740,12 @@ exportChatBtn.addEventListener('click', () => {
   a.download = `slimgpt-chat-${Date.now()}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
+});
+
+// ─── MODEL SELECTOR SYNC ────────────────────────────────────────────────────
+document.getElementById('modelSelect').addEventListener('change', (e) => {
+  const badge = document.getElementById('headerParamBadge');
+  badge.textContent = e.target.value === 'v2' ? '~34M Parameters' : '~13M Parameters';
 });
 </script>
 </body>
