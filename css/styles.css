@@ -1,0 +1,126 @@
+body { background-color: #0B0F19; overflow: hidden; font-family: 'Geist', sans-serif; }
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+.glass-panel-high {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 32px 64px rgba(0,0,0,0.4);
+}
+
+.ambient-orb {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.15;
+  z-index: 0;
+  animation: orb-pulse 14s infinite alternate ease-in-out;
+  pointer-events: none;
+}
+.orb-violet { background: #6d3bd7; top: -15%; left: -10%; animation-delay: 0s; }
+.orb-blue   { background: #0566d9; bottom: -15%; right: -10%; animation-delay: -5s; }
+.orb-green  { background: #10b981; top: 40%; left: 45%; animation-delay: -10s; }
+
+@keyframes orb-pulse {
+  0%   { transform: scale(1) translate(0, 0); opacity: 0.1; }
+  100% { transform: scale(1.25) translate(40px, 30px); opacity: 0.22; }
+}
+
+/* Custom range sliders */
+input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
+input[type=range]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: rgba(208, 188, 255, 0.12);
+  border-radius: 2px;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 14px; width: 14px;
+  border-radius: 50%;
+  background: #d0bcff;
+  cursor: pointer;
+  margin-top: -5px;
+  box-shadow: 0 0 12px rgba(208, 188, 255, 0.8);
+  transition: transform 0.15s ease;
+}
+input[type=range]:active::-webkit-slider-thumb { transform: scale(1.35); }
+
+/* Status animations */
+.status-online  { animation: glow-green 2s infinite; }
+.status-offline { animation: glow-amber 1.4s infinite; }
+
+@keyframes glow-green {
+  0%   { box-shadow: 0 0 0 0 rgba(78, 222, 163, 0.7); }
+  70%  { box-shadow: 0 0 0 6px rgba(78, 222, 163, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(78, 222, 163, 0); }
+}
+@keyframes glow-amber {
+  0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70%  { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* Chat bubble animations */
+.bubble-in {
+  animation: bubble-appear 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes bubble-appear {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Bouncing dot loader */
+.dot-bounce span {
+  width: 7px; height: 7px;
+  background: #958ea0;
+  border-radius: 50%;
+  display: inline-block;
+  animation: bounce 1.3s ease-in-out infinite both;
+}
+.dot-bounce span:nth-child(1) { animation-delay: -0.3s; }
+.dot-bounce span:nth-child(2) { animation-delay: -0.15s; }
+.dot-bounce span:nth-child(3) { animation-delay: 0s; }
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+  40%            { transform: scale(1); opacity: 1; }
+}
+
+/* Mobile sidebar overlay */
+.sidebar-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 30; backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+
+/* Sidebar — hidden by default on mobile, always visible on md+ */
+#paramSidebar {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (max-width: 767px) {
+  #paramSidebar { transform: translateX(-100%); }
+  #paramSidebar.sidebar-open { transform: translateX(0); }
+}
+
+/* Floating input focus glow */
+#inputWrapper:focus-within {
+  border-color: rgba(208, 188, 255, 0.4) !important;
+  box-shadow: 0 0 28px rgba(208, 188, 255, 0.08);
+}

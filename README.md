@@ -18,7 +18,7 @@
 
 SlimGPT is a **from-scratch GPT-style transformer** trained on custom data and deployed as a serverless API on Hugging Face Spaces. This repository contains the **premium glassmorphic chat frontend** that connects to the API and lets you interact with the model in real time.
 
-> 🚀 No frameworks, no build step — just a single `index.html` that deploys instantly on Vercel.
+> 🚀 No frameworks, no build step — clean vanilla HTML/CSS/JS that deploys instantly on Vercel.
 
 ---
 
@@ -41,10 +41,10 @@ SlimGPT is a **from-scratch GPT-style transformer** trained on custom data and d
 ┌─────────────────────────────────────┐       ┌──────────────────────────────────┐
 │           Frontend (Vercel)         │       │   API Backend (HF Spaces Docker) │
 │                                     │       │                                  │
-│  index.html                         │──────▶│  Flask  /generate  POST          │
+│  index.html / css / js              │──────▶│  Flask  /generate  POST          │
 │  • Vanilla HTML / CSS / JS          │       │  gunicorn  •  CORS enabled       │
 │  • Calls HF Space API               │◀──────│  MicroGPT transformer (CPU)      │
-│  • Renders chat bubbles             │       │  microgpt_v2.pkl  (180 MB LFS)   │
+│  • Renders chat bubbles             │       │  models/microgpt*.pkl            │
 └─────────────────────────────────────┘       └──────────────────────────────────┘
 ```
 
@@ -139,7 +139,11 @@ const API_BASE = "http://localhost:7860";
 
 ```
 SlimGPT/
-└── index.html      # Complete single-file chat application
+├── index.html      # Main HTML entry point
+├── css/
+│   └── styles.css  # Styles and animations
+└── js/
+    └── app.js      # App logic and API interaction
 ```
 
 ---
